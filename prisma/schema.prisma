@@ -1,0 +1,861 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model accounts {
+  id                        Int                         @id(map: "PK_5a7a02c20412299d198e097a8fe") @default(autoincrement())
+  create_at                 DateTime                    @default(now()) @db.Timestamp(6)
+  is_active                 Boolean                     @default(true)
+  update_at                 DateTime                    @default(now()) @db.Timestamp(6)
+  name                      String?                     @db.VarChar(100)
+  accounts_counter_settings accounts_counter_settings[]
+  accounts_stores           accounts_stores[]
+  accounts_users            accounts_users[]
+  catalog_classes           catalog_classes[]
+  catalog_types             catalog_types[]
+  catalogs                  catalogs[]
+  images                    images[]
+  products                  products[]
+}
+
+model accounts_counter_settings {
+  id                                                   Int       @id(map: "PK_677f84fd60453e6911f4f99e112") @default(autoincrement())
+  type                                                 String    @db.VarChar
+  current_count                                        Int
+  initial_count                                        Int
+  created_at                                           DateTime  @default(now()) @db.Timestamp(6)
+  updated_at                                           DateTime  @default(now()) @db.Timestamp(6)
+  accountId                                            Int?
+  createdByUserId                                      Int?
+  updatedByUserId                                      Int?
+  user_accounts_counter_settings_createdByUserIdTouser user?     @relation("accounts_counter_settings_createdByUserIdTouser", fields: [createdByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_223606ace3028d836c3f69f69ea")
+  accounts                                             accounts? @relation(fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_535b7273f890f121664ec25ffaa")
+  user_accounts_counter_settings_updatedByUserIdTouser user?     @relation("accounts_counter_settings_updatedByUserIdTouser", fields: [updatedByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_92676b483a4a59a6676da274497")
+}
+
+model accounts_stores {
+  id        Int       @id(map: "PK_728b816c6831b32d61c81f530a1") @default(autoincrement())
+  accountId Int?
+  storeId   Int?
+  accounts  accounts? @relation(fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_3ff5d390c8c4a142d437184c779")
+  stores    stores?   @relation(fields: [storeId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_c46fc7a09d6b39f3c364396501b")
+}
+
+model accounts_users {
+  id                  Int       @id(map: "PK_4c00a2cf21bdb99e9dc64dcc75c") @default(autoincrement())
+  create_at           DateTime  @default(now()) @db.Timestamp(6)
+  update_at           DateTime  @default(now()) @db.Timestamp(6)
+  is_owner            Boolean   @default(false)
+  is_active           Boolean?  @default(true)
+  decimals_separator  String    @default(".") @db.Char(1)
+  thousands_separator String    @default(",") @db.Char(1)
+  lang                String?   @default("es") @db.VarChar
+  accountId           Int?
+  userId              Int?
+  accounts            accounts? @relation(fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_51352b32979fa41070de69f9bf9")
+  user                user?     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_b954503cba3a7b9242c74c3ecf2")
+}
+
+model admin_user {
+  id         Int       @id(map: "PK_a28028ba709cd7e5053a86857b4") @default(autoincrement())
+  uuid       String    @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  status     Boolean   @default(true)
+  email      String    @unique(map: "UQ_840ac5cd67be99efa5cd989bf9f") @db.VarChar
+  password   String    @db.VarChar
+  full_name  String?   @db.VarChar
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+}
+
+model app_session {
+  id        Int       @default(autoincrement())
+  sid       String    @db.VarChar
+  sess      Json      @db.Json
+  expire    DateTime  @db.Timestamp(6)
+  createdAt DateTime  @default(now()) @db.Timestamp(6)
+  deletedAt DateTime? @db.Timestamp(6)
+  userId    Int?
+  user      user?     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_668b7a8ff1eb635e2c6888e3091")
+
+  @@id([id, sid], map: "PK_4bb97109908712eb73672a96571")
+}
+
+model attribute {
+  id                                                       Int                                @id(map: "PK_b13fb7c5c9e9dff62b60e0de729") @default(autoincrement())
+  uuid                                                     String                             @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  type                                                     String?                            @db.VarChar
+  is_required                                              Boolean                            @default(false)
+  display_on_frontend                                      Boolean                            @default(false)
+  sort_order                                               Int
+  is_filterable                                            Boolean                            @default(false)
+  code                                                     String?                            @unique(map: "UQ_3c3dadeb70707dfe5a6b3fd7f85") @db.VarChar
+  name                                                     String?                            @db.VarChar
+  attribute_groups_attribute_group                         attribute_groups_attribute_group[]
+  attribute_option                                         attribute_option[]
+  product_attribute                                        product_attribute[]
+  variant_group_variant_group_attributeFive2IdToattribute  variant_group[]                    @relation("variant_group_attributeFive2IdToattribute")
+  variant_group_variant_group_attributeFour2IdToattribute  variant_group[]                    @relation("variant_group_attributeFour2IdToattribute")
+  variant_group_variant_group_attributeOne2IdToattribute   variant_group[]                    @relation("variant_group_attributeOne2IdToattribute")
+  variant_group_variant_group_attributeThree2IdToattribute variant_group[]                    @relation("variant_group_attributeThree2IdToattribute")
+  variant_group_variant_group_attributeTwo2IdToattribute   variant_group[]                    @relation("variant_group_attributeTwo2IdToattribute")
+}
+
+model attribute_group {
+  id                               Int                                @id(map: "PK_11db6f6e398d4a944607fefa37a") @default(autoincrement())
+  uuid                             String                             @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  group_name                       String
+  created_at                       DateTime?                          @default(now()) @db.Timestamptz(6)
+  updated_at                       DateTime?                          @default(now()) @db.Timestamptz(6)
+  attribute_groups_attribute_group attribute_groups_attribute_group[]
+  products                         products[]
+  variant_group                    variant_group[]
+}
+
+model attribute_groups_attribute_group {
+  attributeId      Int
+  attributeGroupId Int
+  attribute        attribute       @relation(fields: [attributeId], references: [id], onDelete: Cascade, map: "FK_5c864a916aea7b393e964e9252c")
+  attribute_group  attribute_group @relation(fields: [attributeGroupId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_656819655bb3937edc8c970d626")
+
+  @@id([attributeId, attributeGroupId], map: "PK_74c80fd4738e4663f734d42be99")
+  @@index([attributeId], map: "IDX_5c864a916aea7b393e964e9252")
+  @@index([attributeGroupId], map: "IDX_656819655bb3937edc8c970d62")
+}
+
+model attribute_option {
+  id                Int                 @id(map: "PK_06630b72345d91a8e3cb5245a57") @default(autoincrement())
+  uuid              String              @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  attributeId       Int?
+  code              String?             @db.VarChar
+  text              String?             @db.VarChar
+  attribute         attribute?          @relation(fields: [attributeId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_0f970f7e5632357537ae1230ea8")
+  product_attribute product_attribute[]
+}
+
+model cart {
+  id                    Int              @id(map: "PK_c524ec48751b9b5bcfbf6e59be7") @default(autoincrement())
+  uuid                  String           @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  sid                   String?          @db.VarChar
+  currency              String           @db.VarChar
+  customer_id           Int?
+  customer_group_id     Int?             @db.SmallInt
+  customer_email        String?          @db.VarChar
+  customer_full_name    String?          @db.VarChar
+  user_ip               String?          @db.VarChar
+  status                cart_status_enum @default(processing)
+  coupon                String?          @db.VarChar
+  shipping_fee_excl_tax Decimal?         @db.Decimal(12, 4)
+  shipping_fee_incl_tax Decimal?         @db.Decimal(12, 4)
+  discount_amount       Decimal?         @db.Decimal(12, 4)
+  sub_total             Decimal          @db.Decimal(12, 4)
+  sub_total_incl_tax    Decimal          @db.Decimal(12, 4)
+  total_qty             Int
+  total_weight          Decimal?         @db.Decimal(12, 4)
+  tax_amount            Decimal          @db.Decimal(12, 4)
+  grand_total           Decimal          @db.Decimal(12, 4)
+  shipping_method       String?          @db.VarChar
+  shipping_method_name  String?          @db.VarChar
+  shipping_zone_id      Int?
+  shipping_address_id   Int?
+  payment_method        String?          @db.VarChar
+  payment_method_name   String?          @db.VarChar
+  billing_address_id    Int?
+  shipping_note         String?
+  created_at            DateTime?        @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime?        @default(now()) @db.Timestamptz(6)
+  shippingZoneId        Int?
+  shipping_zone         shipping_zone?   @relation(fields: [shippingZoneId], references: [id], onUpdate: NoAction, map: "FK_a9da25bbbd7ef98e3f61938ee9d")
+  cart_item             cart_item[]
+}
+
+model cart_address {
+  id        Int     @id(map: "PK_f13fc95d3331408030b98fc72aa") @default(autoincrement())
+  uuid      String  @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  full_name String? @db.VarChar
+  postcode  String? @db.VarChar
+  telephone String? @db.VarChar
+  country   String? @db.VarChar
+  province  String? @db.VarChar
+  city      String? @db.VarChar
+  address_1 String? @db.VarChar
+  address_2 String? @db.VarChar
+}
+
+model cart_item {
+  id                     Int       @id(map: "PK_bd94725aa84f8cf37632bcde997") @default(autoincrement())
+  uuid                   String    @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  cart_id                Int
+  product_id             Int
+  product_sku            String    @db.VarChar
+  product_name           String
+  thumbnail              String?   @db.VarChar
+  product_weight         Decimal?  @db.Decimal(12, 4)
+  product_price          Decimal   @db.Decimal(12, 4)
+  product_price_incl_tax Decimal   @db.Decimal(12, 4)
+  qty                    Int
+  final_price            Decimal   @db.Decimal(12, 4)
+  final_price_incl_tax   Decimal   @db.Decimal(12, 4)
+  tax_percent            Decimal   @db.Decimal(12, 4)
+  tax_amount             Decimal   @db.Decimal(12, 4)
+  discount_amount        Decimal   @db.Decimal(12, 4)
+  sub_total              Decimal   @db.Decimal(12, 4)
+  total                  Decimal   @db.Decimal(12, 4)
+  variant_group_id       Int?
+  variant_options        String?
+  product_custom_options String?
+  created_at             DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at             DateTime? @default(now()) @db.Timestamptz(6)
+  cartId                 Int?
+  productId              String?   @db.Uuid
+  cart                   cart?     @relation(fields: [cartId], references: [id], onDelete: Cascade, map: "FK_29e590514f9941296f3a2440d39")
+  products               products? @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_75db0de134fe0f9fe9e4591b7bf")
+}
+
+model catalog_classes {
+  name                                       String          @db.VarChar(100)
+  description                                String          @db.VarChar(200)
+  created_by_user_id                         Int?
+  updated_by_user_id                         Int?
+  account_id                                 Int?
+  is_active                                  Boolean         @default(true)
+  deleted_at                                 DateTime?       @db.Timestamptz(6)
+  created_at                                 DateTime        @default(now()) @db.Timestamptz(6)
+  updated_at                                 DateTime        @default(now()) @db.Timestamptz(6)
+  id                                         String          @id(map: "PK_e540a91bd1a83a3b97604bc5d80") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  createdByUserId                            Int?
+  updatedByUserId                            Int?
+  accountId                                  Int?
+  user_catalog_classes_updatedByUserIdTouser user?           @relation("catalog_classes_updatedByUserIdTouser", fields: [updatedByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_0eb9363c9875becf9a550d6ec60")
+  user_catalog_classes_createdByUserIdTouser user?           @relation("catalog_classes_createdByUserIdTouser", fields: [createdByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_102c7c6dd6d812ebff2cb1b67ad")
+  accounts                                   accounts?       @relation(fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_a992ecfcaf66347ddb31bad67e3")
+  catalog_types                              catalog_types[]
+}
+
+model catalog_types {
+  name                                     String           @db.VarChar(100)
+  description                              String           @db.VarChar(200)
+  created_by_user_id                       Int?
+  updated_by_user_id                       Int?
+  account_id                               Int?
+  is_active                                Boolean          @default(true)
+  deleted_at                               DateTime?        @db.Timestamptz(6)
+  created_at                               DateTime         @default(now()) @db.Timestamptz(6)
+  updated_at                               DateTime         @default(now()) @db.Timestamptz(6)
+  createdByUserId                          Int?
+  updatedByUserId                          Int?
+  accountId                                Int?
+  id                                       String           @id(map: "PK_8541ba71675bc020a25c6e37255") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  catalog_class_id                         String?          @db.Uuid
+  accounts                                 accounts?        @relation(fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_09cfe897b92f02d5243fe9d9473")
+  user_catalog_types_updatedByUserIdTouser user?            @relation("catalog_types_updatedByUserIdTouser", fields: [updatedByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_52831d2b82c4d62f8f0fe87229a")
+  user_catalog_types_createdByUserIdTouser user?            @relation("catalog_types_createdByUserIdTouser", fields: [createdByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_5d5865f65aa3a49137863d43aa3")
+  catalog_classes                          catalog_classes? @relation(fields: [catalog_class_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_f718d5fd03f4581623ad47167c5")
+  catalogs                                 catalogs[]
+}
+
+model catalogs {
+  name                                String         @db.VarChar(100)
+  description                         String         @db.VarChar(200)
+  is_active                           Boolean        @default(true)
+  custom_properties                   Json?
+  created_by_user_id                  Int?
+  updated_by_user_id                  Int?
+  account_id                          Int?
+  deleted_at                          DateTime?      @db.Timestamptz(6)
+  created_at                          DateTime       @default(now()) @db.Timestamptz(6)
+  updated_at                          DateTime       @default(now()) @db.Timestamptz(6)
+  createdByUserId                     Int?
+  updatedByUserId                     Int?
+  accountId                           Int?
+  id                                  String         @id(map: "PK_1883399275415ee6107413fe6c3") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  catalog_type_id                     String?        @db.Uuid
+  parent_catalog_id                   String?        @db.Uuid
+  catalog_types                       catalog_types? @relation(fields: [catalog_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_090b993d12335da5c26ac3b4d72")
+  accounts                            accounts?      @relation(fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_0a49882969b80af252f1518fa81")
+  catalogs                            catalogs?      @relation("catalogsTocatalogs", fields: [parent_catalog_id], references: [id], onDelete: Restrict, onUpdate: NoAction, map: "FK_ac63102ad297d54221bda96d6b9")
+  other_catalogs                      catalogs[]     @relation("catalogsTocatalogs")
+  user_catalogs_updatedByUserIdTouser user?          @relation("catalogs_updatedByUserIdTouser", fields: [updatedByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_f8fc7b0896904c6d714d923f4f9")
+  user_catalogs_createdByUserIdTouser user?          @relation("catalogs_createdByUserIdTouser", fields: [createdByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_fcab8ef0758bdce649036e6e1e5")
+}
+
+model category {
+  id             Int        @id(map: "PK_9c4e4a89e3674fc9f382d733f03") @default(autoincrement())
+  uuid           String     @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  status         Boolean
+  parent_id      Int?
+  include_in_nav Boolean
+  position       Int?       @db.SmallInt
+  created_at     DateTime?  @default(now()) @db.Timestamptz(6)
+  updated_at     DateTime?  @default(now()) @db.Timestamptz(6)
+  name           String     @db.VarChar(255)
+  image          String     @db.VarChar(255)
+  products       products[]
+}
+
+model category_description {
+  id                               Int     @id(map: "PK_4e3ac68dcedc09b734c76b5988e") @default(autoincrement())
+  category_description_category_id Int     @unique(map: "UQ_99a6344d669315b2523f9608a9a")
+  name                             String  @db.VarChar
+  short_description                String?
+  description                      String?
+  image                            String? @db.VarChar
+  meta_title                       String?
+  meta_keywords                    String?
+  meta_description                 String?
+  url_key                          String  @unique(map: "UQ_8ce70e22098d6d874be26442af4") @db.VarChar
+}
+
+model cms_page {
+  id         Int       @id(map: "PK_930fa3419b13beec75cc102b600") @default(autoincrement())
+  uuid       String    @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  layout     String    @db.VarChar
+  status     Boolean?
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at DateTime? @default(now()) @db.Timestamptz(6)
+}
+
+model cms_page_description {
+  id                               Int     @id(map: "PK_0bcfbe5eb8d5bba60010628a492") @default(autoincrement())
+  cms_page_description_cms_page_id Int?    @unique(map: "UQ_dc6ad52008d95bf01885ea64f9f")
+  url_key                          String  @unique(map: "UQ_16043dcd6a0dec4fd01a6f87959") @db.VarChar
+  name                             String  @db.VarChar
+  content                          String?
+  meta_title                       String? @db.VarChar
+  meta_keywords                    String? @db.VarChar
+  meta_description                 String?
+}
+
+model collection {
+  id                 Int                  @id(map: "PK_ad3f485bbc99d875491f44d7c85") @default(autoincrement())
+  uuid               String               @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name               String               @db.VarChar
+  description        String?
+  code               String               @unique(map: "UQ_0518027a82c85d26b18527fedaf") @db.VarChar
+  created_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime?            @default(now()) @db.Timestamptz(6)
+  product_collection product_collection[]
+}
+
+model coupon {
+  id                         Int       @id(map: "PK_fcbe9d72b60eed35f46dc35a682") @default(autoincrement())
+  uuid                       String    @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  status                     Boolean   @default(true)
+  description                String    @db.VarChar
+  discount_amount            Decimal   @db.Decimal(12, 4)
+  free_shipping              Boolean   @default(false)
+  discount_type              String    @default("1") @db.VarChar
+  coupon                     String    @unique(map: "UQ_75af98fc8fbae69cf49e6df639c") @db.VarChar
+  used_time                  Int
+  target_products            Json?
+  condition                  Json?
+  user_condition             Json?
+  buyx_gety                  Json?
+  max_uses_time_per_coupon   Int?
+  max_uses_time_per_customer Int?
+  start_date                 DateTime? @db.Timestamptz(6)
+  end_date                   DateTime? @db.Timestamptz(6)
+  created_at                 DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at                 DateTime? @default(now()) @db.Timestamptz(6)
+}
+
+model customer {
+  id                   Int                    @id(map: "PK_a7a13f4cacb744524e44dfdad32") @default(autoincrement())
+  uuid                 String                 @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  status               String                 @db.VarChar
+  group_id             Int?
+  email                String                 @unique(map: "UQ_fdb2f3ad8115da4c7718109a6eb") @db.VarChar
+  password             String                 @db.VarChar
+  full_name            String?                @db.VarChar
+  created_at           DateTime?              @default(now()) @db.Timestamptz(6)
+  updated_at           DateTime?              @default(now()) @db.Timestamptz(6)
+  groupId              Int?
+  customer_group       customer_group?        @relation(fields: [groupId], references: [id], onUpdate: NoAction, map: "FK_6957a7019e8dfbbae779fdd9fc4")
+  customer_address     customer_address[]
+  reset_password_token reset_password_token[]
+}
+
+model customer_address {
+  id          Int       @id(map: "PK_23810fb397050d8ac37dae44ff6") @default(autoincrement())
+  uuid        String    @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  customer_id Int
+  full_name   String?   @db.VarChar
+  telephone   String?   @db.VarChar
+  address_1   String?   @db.VarChar
+  address_2   String?   @db.VarChar
+  postcode    String?   @db.VarChar
+  city        String?   @db.VarChar
+  province    String?   @db.VarChar
+  country     String    @db.VarChar
+  created_at  DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at  DateTime? @default(now()) @db.Timestamptz(6)
+  is_default  Int?      @db.SmallInt
+  customerId  Int?
+  customer    customer? @relation(fields: [customerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_af004ad3c5bf7e3096f5d40190f")
+}
+
+model customer_group {
+  id         Int        @id(map: "PK_88e7da3ff7262d9e0a35aa3664e") @default(autoincrement())
+  uuid       String     @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  group_name String     @db.VarChar
+  created_at DateTime?  @default(now()) @db.Timestamptz(6)
+  updated_at DateTime?  @default(now()) @db.Timestamptz(6)
+  customer   customer[]
+}
+
+model event {
+  id         Int       @id(map: "PK_30c2f3bbaf6d34a55f8ae6e4614") @default(autoincrement())
+  uuid       String    @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name       String    @db.VarChar
+  data       Json?     @db.Json
+  created_at DateTime? @default(now()) @db.Timestamptz(6)
+}
+
+model forgot_password {
+  id        Int       @id(map: "PK_9b1bedb8b9dd6834196533ee41b") @default(autoincrement())
+  hash      String    @db.VarChar
+  createdAt DateTime  @default(now()) @db.Timestamp(6)
+  deletedAt DateTime? @db.Timestamp(6)
+  userId    Int?
+  user      user?     @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_dba25590105b78ad1a6adfbc6ae")
+}
+
+model images {
+  id                                String    @id(map: "PK_1fe148074c6a1a91b63cb9ee3c9") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  created_by_user_id                Int?
+  updated_by_user_id                Int?
+  account_id                        Int?
+  is_active                         Boolean   @default(true)
+  deleted_at                        DateTime? @db.Timestamptz(6)
+  created_at                        DateTime  @default(now()) @db.Timestamptz(6)
+  updated_at                        DateTime  @default(now()) @db.Timestamptz(6)
+  url                               String?
+  optimizedUrl                      String?
+  fileName                          String?
+  fileType                          String?
+  fileSize                          Int?
+  width                             Int?
+  height                            Int?
+  createdAtImageKit                 DateTime? @db.Timestamp(6)
+  imageKitId                        String?
+  resolution                        String?
+  tags                              String?
+  signature                         String?
+  createdByUserId                   Int?
+  updatedByUserId                   Int?
+  accountId                         Int?
+  user_images_updatedByUserIdTouser user?     @relation("images_updatedByUserIdTouser", fields: [updatedByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_594a6101f27df673791202226aa")
+  accounts                          accounts? @relation(fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_efcea6f4c432bac76ad19be6365")
+  user_images_createdByUserIdTouser user?     @relation("images_createdByUserIdTouser", fields: [createdByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_fede2e1ef3f79c267e0817b117a")
+}
+
+model migrations {
+  id        Int    @id(map: "PK_8c82d7f526340ab734260ea46be") @default(autoincrement())
+  timestamp BigInt
+  name      String @db.VarChar
+}
+
+model migrations_typeorm {
+  id        Int    @id(map: "PK_48f349806db3f6cc916da893c67") @default(autoincrement())
+  timestamp BigInt
+  name      String @db.VarChar
+}
+
+model order {
+  id                    Int                   @id(map: "PK_1031171c13130102495201e3e20") @default(autoincrement())
+  uuid                  String                @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  integration_order_id  String?               @db.VarChar
+  sid                   String?               @db.VarChar
+  order_number          String                @unique(map: "UQ_f9180f384353c621e8d0c414c14") @db.VarChar
+  cart_id               Int
+  currency              String                @db.VarChar
+  customer_id           Int?
+  customer_email        String?               @db.VarChar
+  customer_full_name    String?               @db.VarChar
+  user_ip               String?               @db.VarChar
+  user_agent            String?               @db.VarChar
+  coupon                String?               @db.VarChar
+  shipping_fee_excl_tax Decimal?              @db.Decimal(12, 4)
+  shipping_fee_incl_tax Decimal?              @db.Decimal(12, 4)
+  discount_amount       Decimal?              @db.Decimal(12, 4)
+  sub_total             Decimal               @db.Decimal(12, 4)
+  sub_total_incl_tax    Decimal               @db.Decimal(12, 4)
+  total_qty             Int
+  total_weight          Decimal?              @db.Decimal(12, 4)
+  tax_amount            Decimal               @db.Decimal(12, 4)
+  shipping_note         String?
+  grand_total           Decimal               @db.Decimal(12, 4)
+  shipping_method       String?               @db.VarChar
+  shipping_method_name  String?               @db.VarChar
+  shipping_address_id   Int?
+  payment_method        String?               @db.VarChar
+  payment_method_name   String?               @db.VarChar
+  billing_address_id    Int?
+  shipment_status       String?               @db.VarChar
+  payment_status        String?               @db.VarChar
+  created_at            DateTime?             @default(now()) @db.Timestamptz(6)
+  updated_at            DateTime?             @default(now()) @db.Timestamptz(6)
+  order_activity        order_activity[]
+  order_item            order_item[]
+  payment_transaction   payment_transaction[]
+  shipment              shipment[]
+}
+
+model order_activity {
+  id                      Int       @id(map: "PK_25304ed890cb401f380859bbfd0") @default(autoincrement())
+  uuid                    String    @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  order_activity_order_id Int
+  comment                 String
+  customer_notified       Boolean   @default(false)
+  created_at              DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at              DateTime? @default(now()) @db.Timestamptz(6)
+  orderActivityOrderId    Int?
+  order                   order?    @relation(fields: [orderActivityOrderId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_ee69b079455a5bcdc28bc4922fc")
+}
+
+model order_address {
+  id        Int     @id(map: "PK_f07603e96b068aae820d4590270") @default(autoincrement())
+  uuid      String  @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  full_name String? @db.VarChar
+  postcode  String? @db.VarChar
+  telephone String? @db.VarChar
+  country   String? @db.VarChar
+  province  String? @db.VarChar
+  city      String? @db.VarChar
+  address_1 String? @db.VarChar
+  address_2 String? @db.VarChar
+}
+
+model order_item {
+  id                     Int      @id(map: "PK_d01158fe15b1ead5c26fd7f4e90") @default(autoincrement())
+  uuid                   String   @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  order_item_order_id    Int
+  product_id             Int
+  referer                Int?
+  product_sku            String   @db.VarChar
+  product_name           String
+  thumbnail              String?  @db.VarChar
+  product_weight         Decimal? @db.Decimal(12, 4)
+  product_price          Decimal  @db.Decimal(12, 4)
+  product_price_incl_tax Decimal  @db.Decimal(12, 4)
+  qty                    Int
+  final_price            Decimal  @db.Decimal(12, 4)
+  final_price_incl_tax   Decimal  @db.Decimal(12, 4)
+  tax_percent            Decimal  @db.Decimal(12, 4)
+  tax_amount             Decimal  @db.Decimal(12, 4)
+  discount_amount        Decimal  @db.Decimal(12, 4)
+  sub_total              Decimal  @db.Decimal(12, 4)
+  total                  Decimal  @db.Decimal(12, 4)
+  variant_group_id       Int?
+  variant_options        String?
+  product_custom_options String?
+  requested_data         String?
+  orderItemOrderId       Int?
+  order                  order?   @relation(fields: [orderItemOrderId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_5c3858a7f958bba55a734447095")
+}
+
+model payment_transaction {
+  id                           Int       @id(map: "PK_82c3470854cf4642dfb0d7150cd") @default(autoincrement())
+  uuid                         String    @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  payment_transaction_order_id Int       @unique(map: "UQ_82878554bd1cd0f8672d6fbca06")
+  transaction_id               String?   @unique(map: "UQ_5d662065a6c8a45d35e77e9cc81") @db.VarChar
+  transaction_type             String    @db.VarChar
+  amount                       Decimal   @db.Decimal(12, 4)
+  parent_transaction_id        String?   @db.VarChar
+  payment_action               String?   @db.VarChar
+  additional_information       String?
+  created_at                   DateTime? @default(now()) @db.Timestamptz(6)
+  paymentTransactionOrderId    Int?
+  order                        order?    @relation(fields: [paymentTransactionOrderId], references: [id], onDelete: Cascade, map: "FK_bde774c7838c078d6812d8e7f72")
+}
+
+model product_attribute {
+  product_attribute_value_index_id Int               @id(map: "PK_8a59dd85b07d54932926ac54513") @default(autoincrement())
+  attributeId                      Int?
+  optionId                         Int?
+  text                             String?
+  productId                        String?           @db.Uuid
+  attribute_option                 attribute_option? @relation(fields: [optionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_127fec70732c617c5970674f10e")
+  attribute                        attribute?        @relation(fields: [attributeId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_5134aa627db96cdfb1bf0be5223")
+  products                         products?         @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_c0d597555330c0a972122bf4673")
+}
+
+model product_collection {
+  id            Int         @id(map: "PK_49d419fc77d3aed46c835c558ac") @default(autoincrement())
+  collection_id Int         @unique(map: "UQ_2346dc7fab96336a85a6418b776")
+  product_id    Int         @unique(map: "UQ_339ecc9827594501895301ffec7")
+  collectionId  Int?
+  productId     String?     @db.Uuid
+  products      products?   @relation(fields: [productId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_74939f2405997a66eab143bf3dc")
+  collection    collection? @relation(fields: [collectionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_962b750e1401fa3ce379cec9a59")
+}
+
+model product_custom_option {
+  id                               Int                           @id(map: "PK_0d8bf1f9eb45b626f53497da156") @default(autoincrement())
+  uuid                             String                        @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  product_custom_option_product_id Int
+  option_name                      String                        @db.VarChar
+  option_type                      String                        @db.VarChar
+  is_required                      Boolean                       @default(false)
+  sort_order                       Int?
+  productCustomOptionProductId     String?                       @db.Uuid
+  products                         products?                     @relation(fields: [productCustomOptionProductId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_f78f605da984d6971b7c9401a7a")
+  product_custom_option_value      product_custom_option_value[]
+}
+
+model product_custom_option_value {
+  product_custom_option_value_id Int                    @id(map: "PK_f05e33c6a43a353253b18e9eeee") @default(autoincrement())
+  uuid                           String                 @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  option_id                      Int
+  extra_price                    Decimal?               @db.Decimal(12, 4)
+  sort_order                     Int?
+  value                          String                 @db.VarChar
+  optionId                       Int?
+  product_custom_option          product_custom_option? @relation(fields: [optionId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_9742b2cbd6258c385f7a437975f")
+}
+
+model product_description {
+  id                             Int     @id(map: "PK_ced8671d69966133eeb83d4df0b") @default(autoincrement())
+  product_description_product_id Int     @unique(map: "UQ_e7ce69a0b0069128bd4571d11fe")
+  name                           String  @db.VarChar
+  description                    String?
+  short_description              String?
+  url_key                        String  @unique(map: "UQ_48af331a82fc28592ae550eb834") @db.VarChar
+  meta_title                     String?
+  meta_description               String?
+  meta_keywords                  String?
+}
+
+model product_inventory {
+  id                           Int     @id(map: "PK_84e9362e0a5bf063e561d9452ba") @default(autoincrement())
+  product_inventory_product_id Int     @unique(map: "UQ_67303992e9f22a3cd22d3ffa096")
+  qty                          Int     @default(0)
+  manage_stock                 Boolean @default(false)
+  stock_availability           Boolean @default(false)
+}
+
+model products {
+  name                                String                  @db.VarChar(100)
+  description                         String                  @db.VarChar(200)
+  price                               Decimal                 @db.Decimal(10, 2)
+  tags                                String[]                @default([]) @db.VarChar
+  type                                String                  @default("simple") @db.VarChar
+  variant_group_id                    Int?
+  visibility                          Boolean                 @default(true)
+  group_id                            Int?
+  sku                                 String                  @unique(map: "UQ_c44ac33a05b144dd0d9ddcf9327") @db.VarChar
+  weight                              Decimal?                @db.Decimal(12, 4)
+  status                              Boolean                 @default(false)
+  categoryId                          Int?
+  groupId                             Int?
+  taxClassId                          Int?
+  variantGroupId                      Int?
+  discount                            Decimal                 @db.Decimal(10, 2)
+  rating                              Decimal                 @default(0) @db.Decimal
+  numReviews                          Decimal                 @default(0) @db.Decimal
+  created_by_user_id                  Int?
+  updated_by_user_id                  Int?
+  account_id                          Int?
+  is_active                           Boolean                 @default(true)
+  deleted_at                          DateTime?               @db.Timestamptz(6)
+  created_at                          DateTime                @default(now()) @db.Timestamptz(6)
+  updated_at                          DateTime                @default(now()) @db.Timestamptz(6)
+  createdByUserId                     Int?
+  updatedByUserId                     Int?
+  accountId                           Int?
+  id                                  String                  @id(map: "PK_0806c755e0aca124e67c0cf6d7d") @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  cart_item                           cart_item[]
+  product_attribute                   product_attribute[]
+  product_collection                  product_collection[]
+  product_custom_option               product_custom_option[]
+  accounts                            accounts?               @relation(fields: [accountId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_139d27206922368a4ba800d1778")
+  user_products_updatedByUserIdTouser user?                   @relation("products_updatedByUserIdTouser", fields: [updatedByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_3b166a08ba24ec711f91f0e9814")
+  user_products_createdByUserIdTouser user?                   @relation("products_createdByUserIdTouser", fields: [createdByUserId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_658dcdc6fa401cf1e62c1613773")
+  attribute_group                     attribute_group?        @relation(fields: [groupId], references: [id], onUpdate: NoAction, map: "FK_8f1611225215b15b7784b2e266d")
+  variant_group                       variant_group?          @relation(fields: [variantGroupId], references: [id], onUpdate: NoAction, map: "FK_913a4ab786be0dcd640f309aeec")
+  tax_class                           tax_class?              @relation(fields: [taxClassId], references: [id], onUpdate: NoAction, map: "FK_a5aba6f8e1eea0e1556bbe39a21")
+  category                            category?               @relation(fields: [categoryId], references: [id], onUpdate: NoAction, map: "FK_ff56834e735fa78a15d0cf21926")
+}
+
+model reset_password_token {
+  id         Int       @id(map: "PK_c6f6eb8f5c88ac0233eceb8d385") @default(autoincrement())
+  token      String
+  created_at DateTime  @default(now()) @db.Timestamptz(6)
+  customerId Int?
+  customer   customer? @relation(fields: [customerId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_0fc8d103b9dc705092f84f537f4")
+}
+
+model seeds {
+  id        Int    @id(map: "PK_3ac799e4ece18bc838823bb6a4b") @default(autoincrement())
+  timestamp BigInt
+  name      String @db.VarChar
+}
+
+model setting {
+  id      Int     @id(map: "PK_fcb21187dc6094e24a48f677bed") @default(autoincrement())
+  uuid    String  @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name    String  @unique(map: "UQ_27923d152bbf82683ab795d5476") @db.VarChar
+  value   String?
+  is_json Boolean @default(false)
+}
+
+model shipment {
+  id                Int       @id(map: "PK_f51f635db95c534ca206bf7a0a4") @default(autoincrement())
+  uuid              String    @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  shipment_order_id Int
+  carrier           String?   @db.VarChar
+  tracking_number   String?   @db.VarChar
+  created_at        DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at        DateTime? @default(now()) @db.Timestamptz(6)
+  shipmentOrderId   Int?
+  order             order?    @relation(fields: [shipmentOrderId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_08b4b4d8efbbc0b227f49e5b20c")
+}
+
+model shipping_method {
+  id                   Int                    @id(map: "PK_b9b0adfad3c6b99229c1e7d4865") @default(autoincrement())
+  uuid                 String                 @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                 String                 @unique(map: "UQ_b162a8b6b57c9e09c852208772e") @db.VarChar
+  shipping_zone_method shipping_zone_method[]
+}
+
+model shipping_zone {
+  id                     Int                      @id(map: "PK_07ba5dcdabaa4854f554c777ef4") @default(autoincrement())
+  uuid                   String                   @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name                   String                   @db.VarChar
+  country                String                   @db.VarChar
+  cart                   cart[]
+  shipping_zone_method   shipping_zone_method[]
+  shipping_zone_province shipping_zone_province[]
+}
+
+model shipping_zone_method {
+  id              Int              @id(map: "PK_5971ae311d3dac1347ea10583fb") @default(autoincrement())
+  method_id       Int              @unique(map: "UQ_e858ffdba5071dd396e97c8e861")
+  zone_id         Int              @unique(map: "UQ_a01c1ce91bd5f02d06005338143")
+  is_enabled      Boolean          @default(true)
+  cost            Decimal?         @db.Decimal(12, 4)
+  calculate_api   String?          @db.VarChar
+  condition_type  String?          @db.VarChar
+  max             Decimal?         @db.Decimal(12, 4)
+  min             Decimal?         @db.Decimal(12, 4)
+  methodId        Int?
+  zoneId          Int?
+  shipping_method shipping_method? @relation(fields: [methodId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_0500cabf4de52505e89edd811c5")
+  shipping_zone   shipping_zone?   @relation(fields: [zoneId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_4899c2a105725f0f120bf192e35")
+}
+
+model shipping_zone_province {
+  shipping_zone_province_id Int            @id(map: "PK_1a24e96dd3b9fac4f1873ace134") @default(autoincrement())
+  uuid                      String         @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  zone_id                   Int
+  province                  String         @unique(map: "UQ_9204fa970c1261f300a350df8ce") @db.VarChar
+  zoneId                    Int?
+  shipping_zone             shipping_zone? @relation(fields: [zoneId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_cbc0776ed8d562747c510fee419")
+}
+
+model stores {
+  id              Int               @id(map: "PK_7aa6e7d71fa7acdd7ca43d7c9cb") @default(autoincrement())
+  name            String            @db.VarChar
+  accounts_stores accounts_stores[]
+}
+
+model tax_class {
+  id       Int        @id(map: "PK_b0218b0fd9003952da1e073dc78") @default(autoincrement())
+  uuid     String     @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name     String     @db.VarChar
+  products products[]
+  tax_rate tax_rate[]
+}
+
+model tax_rate {
+  id           Int        @id(map: "PK_23b71b53f650c0b39e99ccef4fd") @default(autoincrement())
+  uuid         String     @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  name         String     @db.VarChar
+  tax_class_id Int?       @unique(map: "UQ_d5d407490e8b5384dd349459f9a")
+  country      String     @default("*") @db.VarChar
+  province     String     @default("*") @db.VarChar
+  postcode     String     @default("*") @db.VarChar
+  rate         Decimal    @db.Decimal(12, 4)
+  is_compound  Boolean    @default(false)
+  priority     Int        @unique(map: "UQ_04eee0f60193c9cca17a58633c8")
+  taxClassId   Int?
+  tax_class    tax_class? @relation(fields: [taxClassId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_1128471f4075d619aaada7cac45")
+}
+
+model url_rewrite {
+  id           Int     @id(map: "PK_ab6e7beb48bd9b7df7ffa650c40") @default(autoincrement())
+  language     String  @unique(map: "UQ_5f4ed1a6b8a315446380c79903f") @default("en") @db.VarChar
+  request_path String  @db.VarChar
+  target_path  String  @db.VarChar
+  entity_uuid  String? @unique(map: "UQ_73eaf974bdb32d26b362ae7f3e5") @db.Uuid
+  entity_type  String? @db.VarChar
+}
+
+model user {
+  id                                                                        Int                         @id(map: "PK_cace4a159ff9f2512dd42373760") @default(autoincrement())
+  email                                                                     String?                     @unique(map: "UQ_e12875dfb3b1d92d7d7c5377e22") @db.VarChar
+  nickname                                                                  String?                     @db.VarChar
+  password                                                                  String?                     @db.VarChar
+  provider                                                                  String                      @default("email") @db.VarChar
+  status                                                                    user_status_enum            @default(inactive)
+  socialId                                                                  String?                     @db.VarChar
+  firstName                                                                 String?                     @db.VarChar
+  lastName                                                                  String?                     @db.VarChar
+  createdAt                                                                 DateTime                    @default(now()) @db.Timestamp(6)
+  hash                                                                      String?                     @db.VarChar
+  updatedAt                                                                 DateTime                    @default(now()) @db.Timestamp(6)
+  accounts_counter_settings_accounts_counter_settings_createdByUserIdTouser accounts_counter_settings[] @relation("accounts_counter_settings_createdByUserIdTouser")
+  accounts_counter_settings_accounts_counter_settings_updatedByUserIdTouser accounts_counter_settings[] @relation("accounts_counter_settings_updatedByUserIdTouser")
+  accounts_users                                                            accounts_users[]
+  app_session                                                               app_session[]
+  catalog_classes_catalog_classes_updatedByUserIdTouser                     catalog_classes[]           @relation("catalog_classes_updatedByUserIdTouser")
+  catalog_classes_catalog_classes_createdByUserIdTouser                     catalog_classes[]           @relation("catalog_classes_createdByUserIdTouser")
+  catalog_types_catalog_types_updatedByUserIdTouser                         catalog_types[]             @relation("catalog_types_updatedByUserIdTouser")
+  catalog_types_catalog_types_createdByUserIdTouser                         catalog_types[]             @relation("catalog_types_createdByUserIdTouser")
+  catalogs_catalogs_updatedByUserIdTouser                                   catalogs[]                  @relation("catalogs_updatedByUserIdTouser")
+  catalogs_catalogs_createdByUserIdTouser                                   catalogs[]                  @relation("catalogs_createdByUserIdTouser")
+  forgot_password                                                           forgot_password[]
+  images_images_updatedByUserIdTouser                                       images[]                    @relation("images_updatedByUserIdTouser")
+  images_images_createdByUserIdTouser                                       images[]                    @relation("images_createdByUserIdTouser")
+  products_products_updatedByUserIdTouser                                   products[]                  @relation("products_updatedByUserIdTouser")
+  products_products_createdByUserIdTouser                                   products[]                  @relation("products_createdByUserIdTouser")
+}
+
+model variant_group {
+  id                                                   Int              @id(map: "PK_f61c9451fd3301da9586232597a") @default(autoincrement())
+  uuid                                                 String           @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  attribute_group_id                                   Int
+  attribute_one                                        Int?
+  attribute_two                                        Int?
+  attribute_three                                      Int?
+  attribute_four                                       Int?
+  attribute_five                                       Int?
+  visibility                                           Boolean          @default(false)
+  attributeFive2Id                                     Int?
+  attributeFour2Id                                     Int?
+  attributeGroupId                                     Int?
+  attributeOne2Id                                      Int?
+  attributeThree2Id                                    Int?
+  attributeTwo2Id                                      Int?
+  products                                             products[]
+  attribute_group                                      attribute_group? @relation(fields: [attributeGroupId], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_0a3d7a003ee60936afa49bb710b")
+  attribute_variant_group_attributeFive2IdToattribute  attribute?       @relation("variant_group_attributeFive2IdToattribute", fields: [attributeFive2Id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_4446809aae5ea40c716c7f85c22")
+  attribute_variant_group_attributeFour2IdToattribute  attribute?       @relation("variant_group_attributeFour2IdToattribute", fields: [attributeFour2Id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_576e1e5f2e465903d42a50f8480")
+  attribute_variant_group_attributeOne2IdToattribute   attribute?       @relation("variant_group_attributeOne2IdToattribute", fields: [attributeOne2Id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_6aa1f59814d5fc41f5fb6733577")
+  attribute_variant_group_attributeThree2IdToattribute attribute?       @relation("variant_group_attributeThree2IdToattribute", fields: [attributeThree2Id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_d8d793469a3d4a3275d83f13a67")
+  attribute_variant_group_attributeTwo2IdToattribute   attribute?       @relation("variant_group_attributeTwo2IdToattribute", fields: [attributeTwo2Id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "FK_eede71a0e26367dab381f5bb914")
+}
+
+enum cart_status_enum {
+  processing
+  paid
+}
+
+enum user_status_enum {
+  active
+  inactive
+}
